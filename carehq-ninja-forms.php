@@ -13,13 +13,6 @@ if (!defined('ABSPATH')) {
     exit;
 }
 
-// Check if Ninja Forms is active
-if (!class_exists('Ninja_Forms')) {
-    add_action('admin_notices', function() {
-        echo '<div class="error"><p>' . __('Ninja Forms must be installed and activated for the CareHQ Integration to work.', 'ninja-forms-carehq') . '</p></div>';
-    });
-    return;
-}
 
 // Check if Composer autoload exists
 if (file_exists(dirname(__FILE__) . '/vendor/autoload.php')) {
@@ -74,6 +67,15 @@ class CareHQ_NinjaForms_Integration {
     }
 
     public function page_init() {
+
+        // Check if Ninja Forms is active
+        if (!class_exists('Ninja_Forms')) {
+            add_action('admin_notices', function() {
+                echo '<div class="error"><p>' . __('Ninja Forms must be installed and activated for the CareHQ Integration to work.', 'carehq-ninja-forms') . '</p></div>';
+            });
+            return;
+        }
+
         register_setting(
             'carehq_integration_group',
             'carehq_integration_options',
