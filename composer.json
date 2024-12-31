@@ -1,10 +1,10 @@
 {
-    "name": "andyplak/ninja-forms-carehq",
+    "name": "andyplak/carehq-ninja-forms",
     "description": "CareHQ integration for Ninja Forms",
     "type": "wordpress-plugin",
     "autoload": {
         "psr-4": {
-            "AndyPlak\\NinjaFormsCareHQ\\": "src/"
+            "AndyPlak\\CareHqNinjaForms\\": "src/"
         }
     },
     "require": {

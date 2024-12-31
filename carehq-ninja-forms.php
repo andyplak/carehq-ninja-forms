@@ -13,6 +13,14 @@ if (!defined('ABSPATH')) {
     exit;
 }
 
+// Check if Ninja Forms is active
+if (!class_exists('Ninja_Forms')) {
+    add_action('admin_notices', function() {
+        echo '<div class="error"><p>' . __('Ninja Forms must be installed and activated for the CareHQ Integration to work.', 'ninja-forms-carehq') . '</p></div>';
+    });
+    return;
+}
+
 // Check if Composer autoload exists
 if (file_exists(dirname(__FILE__) . '/vendor/autoload.php')) {
     require_once dirname(__FILE__) . '/vendor/autoload.php';
