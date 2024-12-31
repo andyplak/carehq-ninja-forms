@@ -1,0 +1,13 @@
+{
+    "name": "andyplak/ninja-forms-carehq",
+    "description": "CareHQ integration for Ninja Forms",
+    "type": "wordpress-plugin",
+    "autoload": {
+        "psr-4": {
+            "AndyPlak\\NinjaFormsCareHQ\\": "src/"
+        }
+    },
+    "require": {
+        "carehq/carehq-php": "^0.0.8"
+    }
+}
