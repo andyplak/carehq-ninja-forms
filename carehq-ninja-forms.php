@@ -1,11 +1,11 @@
 <?php
 /*
-Plugin Name: NinjaForms CareHQ Integration
+Plugin Name: CareHQ NinjaForms Integration
 Description: Integrates NinjaForms submissions with CareHQ CRM
 Version: 1.0.0
 Author: Andy Place
 Author URI: https://www.andyplace.co.uk
-Plugin URI: https://github.com/andyplace/ninjaforms-carehq-integration
+Plugin URI: https://github.com/andyplace/carehq-ninja-forms
 */
 
 // Prevent direct access
@@ -28,7 +28,7 @@ if (file_exists(dirname(__FILE__) . '/vendor/autoload.php')) {
 
 use CareHQ\CareHQ\CareHQ;
 
-class NinjaForms_CareHQ_Integration {
+class CareHQ_NinjaForms_Integration {
     private $options;
     private static $instance = null;
 
@@ -232,4 +232,4 @@ function add_carehq_form_settings($fields) {
 }
 
 // Initialize the plugin
-add_action('plugins_loaded', array('NinjaForms_CareHQ_Integration', 'get_instance'));
+add_action('plugins_loaded', array('CareHQ_NinjaForms_Integration', 'get_instance'));
