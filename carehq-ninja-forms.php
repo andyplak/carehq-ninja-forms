@@ -1,25 +1,23 @@
 <?php
-/*
-Plugin Name: CareHQ NinjaForms Integration
-Description: Integrates NinjaForms submissions with CareHQ CRM
-Version: 1.0.0
-Author: Andy Place
-Author URI: https://www.andyplace.co.uk
-Plugin URI: https://github.com/andyplace/carehq-ninja-forms
-*/
+/**
+ * Plugin Name: CareHQ NinjaForms Integration
+ * Description: Integrates NinjaForms submissions with CareHQ CRM
+ * Version: 1.0.0
+ * Author: Andy Place
+ * Author URI: https://www.andyplace.co.uk
+ * Plugin URI: https://github.com/andyplace/carehq-ninja-forms
+ */
 
 // Prevent direct access
 if (!defined('ABSPATH')) {
     exit;
 }
 
-
 // Check if Composer autoload exists
 if (file_exists(dirname(__FILE__) . '/vendor/autoload.php')) {
     require_once dirname(__FILE__) . '/vendor/autoload.php';
 }
 
-use CareHQ\CareHQ\CareHQ;
 
 class CareHQ_NinjaForms_Integration {
     private $options;
@@ -35,10 +33,16 @@ class CareHQ_NinjaForms_Integration {
     private function __construct() {
         add_action('admin_menu', array($this, 'add_plugin_page'));
         add_action('admin_init', array($this, 'page_init'));
-        add_filter('ninja_forms_submit_data', array($this, 'handle_form_submission'), 10, 1);
+        add_filter('ninja_forms_register_actions', array($this, 'ninja_forms_register_actions'));
 
         // Load options
         $this->options = get_option('carehq_integration_options');
+    }
+
+    public function ninja_forms_register_actions($actions) {
+        require_once plugin_dir_path(__FILE__) . 'includes/Actions/CareHQ.php';
+        $actions['carehq'] = new NF_Actions_CareHQ();
+        return $actions;
     }
 
     public function add_plugin_page() {
@@ -153,84 +157,6 @@ class CareHQ_NinjaForms_Integration {
             isset($this->options['api_secret']) ? esc_attr($this->options['api_secret']) : ''
         );
     }
-
-    public function handle_form_submission($form_data) {
-        try {
-            // Initialize CareHQ client
-            $client = new CareHQ(
-                $this->options['api_key'],
-                $this->options['api_secret'],
-                $this->options['account_id']
-            );
-
-            // Get form settings (you'll need to implement this based on your needs)
-            $form_id = $form_data['form_id'];
-            $form_settings = get_option('carehq_form_settings_' . $form_id);
-
-            if (!$form_settings) {
-                return $form_data;
-            }
-
-            // Map form fields to CareHQ fields
-            $contact_data = array();
-            foreach ($form_data['fields'] as $field) {
-                // Map fields based on form settings
-                // This is a basic example - you'll need to implement proper field mapping
-                switch ($field['key']) {
-                    case 'email':
-                        $contact_data['email'] = $field['value'];
-                        break;
-                    case 'name':
-                        $contact_data['name'] = $field['value'];
-                        break;
-                    // Add more field mappings as needed
-                }
-            }
-
-            // Create contact in CareHQ
-            $response = $client->contacts()->create($contact_data);
-
-            // Log success
-            error_log('Contact created in CareHQ: ' . print_r($response, true));
-
-        } catch (Exception $e) {
-            // Log error
-            error_log('CareHQ API Error: ' . $e->getMessage());
-        }
-
-        return $form_data;
-    }
-}
-
-// Add form-specific settings to Ninja Forms
-add_filter('ninja_forms_register_fields', 'add_carehq_form_settings');
-
-function add_carehq_form_settings($fields) {
-    $fields['carehq_settings'] = array(
-        'name' => 'CareHQ Settings',
-        'type' => 'fieldset',
-        'label' => 'CareHQ Integration Settings',
-        'settings' => array(
-            'location' => array(
-                'name' => 'location',
-                'type' => 'textbox',
-                'label' => 'CareHQ Location ID',
-                'width' => 'full',
-                'group' => 'primary',
-                'value' => ''
-            ),
-            'group' => array(
-                'name' => 'group',
-                'type' => 'textbox',
-                'label' => 'CareHQ Group ID',
-                'width' => 'full',
-                'group' => 'primary',
-                'value' => ''
-            )
-        )
-    );
-
-    return $fields;
 }
 
 // Initialize the plugin
