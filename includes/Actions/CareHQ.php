@@ -37,7 +37,6 @@ class NF_Actions_CareHQ  extends SotAction implements InterfacesSotAction
         $this->_nicename = esc_html__('CareHQ CRM', 'ninja-forms');
 
         $this->_settings = [
-
             'label' => [
                 'name' => 'label',
                 'type' => 'textbox',
@@ -46,15 +45,6 @@ class NF_Actions_CareHQ  extends SotAction implements InterfacesSotAction
                 'value' => $this->_nicename,
                 'use_merge_tags' => false
             ],
-            'location' => [
-                'name' => 'location',
-                'type' => 'textbox',
-                'label' => esc_html__('Location ID', 'ninja-forms'),
-                'width' => 'full',
-                'group' => 'primary',
-                'value' => '',
-                'help' => esc_html__('Enter your CareHQ Location ID', 'ninja-forms')
-            ],
             'sales_channel' => [
                 'name' => 'sales_channel',
                 'type' => 'textbox',
@@ -62,26 +52,7 @@ class NF_Actions_CareHQ  extends SotAction implements InterfacesSotAction
                 'width' => 'full',
                 'group' => 'primary',
                 'value' => '',
-                'help' => esc_html__('Enter your CareHQ Sales Channel ID', 'ninja-forms')
-            ],
-                'service' => [
-                'name' => 'service',
-                'type' => 'select',
-                'label' => esc_html__('Service Type', 'ninja-forms'),
-                'width' => 'full',
-                'group' => 'primary',
-                'value' => '',
-                'options' => [
-                    ['label' => esc_html__('- Select Service -', 'ninja-forms'), 'value' => ''],
-                    ['label' => esc_html__('Assisted Living', 'ninja-forms'), 'value' => 'assisted_living'],
-                    ['label' => esc_html__('Residential Home', 'ninja-forms'), 'value' => 'residential_home'],
-                    ['label' => esc_html__('Nursing Home', 'ninja-forms'), 'value' => 'nursing_home'],
-                    ['label' => esc_html__('Learning Disability Care', 'ninja-forms'), 'value' => 'learning_disability_care'],
-                    ['label' => esc_html__('Bariatric Care', 'ninja-forms'), 'value' => 'bariatric_care'],
-                    ['label' => esc_html__('Specialist Care', 'ninja-forms'), 'value' => 'specialist_care'],
-                    ['label' => esc_html__('Home Care', 'ninja-forms'), 'value' => 'home_care'],
-                    ['label' => esc_html__('Live-in Care', 'ninja-forms'), 'value' => 'live_in_care']
-                ]
+                'help' => esc_html__('Get the ID from the url in Care HQ under Account Settings > Groups and select the correct group. A dedicated channel for the website would be a logical choice.', 'ninja-forms')
             ],
             'first_name' => [
                 'name' => 'first_name',
@@ -114,12 +85,104 @@ class NF_Actions_CareHQ  extends SotAction implements InterfacesSotAction
                 'width' => 'one-half',
                 'group' => 'primary',
                 'use_merge_tags' => ['include' => ['fields']]
+            ],
+            'care_requirements' => [
+                'name' => 'care_requirements',
+                'type' => 'textbox',
+                'label' => esc_html__('Care Requirements', 'ninja-forms'),
+                'width' => 'full',
+                'group' => 'primary',
+                'use_merge_tags' => ['include' => ['fields']]
+            ],
+            'location' => [
+                'name' => 'location',
+                'type' => 'textbox',
+                'label' => esc_html__('Location ID', 'ninja-forms'),
+                'width' => 'full',
+                'group' => 'primary',
+                'value' => '',
+                'help' => esc_html__('Enter your CareHQ Location ID', 'ninja-forms'),
+                'use_merge_tags' => ['include' => ['fields']]
+            ],
+            'funding_type' => [
+                'name' => 'funding_type',
+                'type' => 'textbox',
+                'label' => esc_html__('Funding Type', 'ninja-forms'),
+                'width' => 'full',
+                'group' => 'primary',
+                'value' => '',
+                'help' => esc_html__('Enter your CareHQ Funding Type. Valid options are "Private", "NHS", "Local Authority", "Charity", "Other"', 'ninja-forms'),
+                'use_merge_tags' => ['include' => ['fields']]
+            ],
+            'service' => [
+                'name' => 'service',
+                'type' => 'textbox',
+                'label' => esc_html__('Service Type', 'ninja-forms'),
+                'width' => 'full',
+                'group' => 'primary',
+                'value' => '',
+                'help' => esc_html__('Enter your CareHQ Service Type. Valid options are "Assisted Living", "Residential Home", "Nursing Home", "Learning Disability Care", "Bariatric Care", "Specialist Care", "Home Care", "Live-in Care"', 'ninja-forms'),
+                'use_merge_tags' => ['include' => ['fields']]
             ]
         ];
     }
 
     public function process(array $action_settings, int $form_id, array $data): array
     {
+
+        // For the location we need to get the ID which is stored in the calc value.
+        // Not convinced this is the best method to do this. Future refactor...
+        foreach ($data['fields'] as $field) {
+            if (strpos($field['key'], 'location_') === 0) {
+                _dump($field);
+                foreach ($field['options'] as $option) {
+                    if($option['value'] === $action_settings['location']) {
+                            $action_settings['location'] = $option['calc'];
+                        break;
+                    }
+                }
+            }
+        }
+
+        $options = get_option('carehq_integration_options');
+
+        // guard against empty api options
+        if (empty($options['account_id']) || empty($options['api_key']) || empty($options['api_secret'])) {
+            return $data;
+        }
+
+        try {
+            $client = new \CareHQ\APIClient(
+                $options['account_id'],
+                $options['api_key'],
+                $options['api_secret'],
+                $options['api_base_url']
+            );
+
+            $care_enquiry_data = [
+                'location'          => $action_settings['location'],
+                'sales_channel'     => $action_settings['sales_channel'],
+                'first_name'        => $action_settings['first_name'],
+                'last_name'         => $action_settings['last_name'],
+                'email'             => $action_settings['email'],
+                'phone'             => $action_settings['phone'],
+                'funding_type'      => $action_settings['funding_type'] ? sanitize_title($action_settings['funding_type']) : 'not_sure',
+                'service'           => $action_settings['service'] ? sanitize_title($action_settings['service']) : 'residential_home', // Defaults to a valid value for the locations I'm working with
+                'care_requirements' => $action_settings['care_requirements']
+            ];
+
+            #_dump($client);
+            #_dump($care_enquiry_data);
+
+            $response = $client->request('PUT', 'care-enquiries', null, $care_enquiry_data);
+            #_dump($response);die;
+            #error_log('Care enquiry created in CareHQ: ' . print_r($response, true));
+
+        } catch (Exception $e) {
+            error_log('CareHQ API Error: ' . $e->getMessage());
+            error_log(print_r($e, true));
+        }
+
         return $data;
     }
 

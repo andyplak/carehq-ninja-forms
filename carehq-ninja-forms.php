@@ -116,6 +116,14 @@ class CareHQ_NinjaForms_Integration {
             'carehq-integration',
             'carehq_integration_section'
         );
+
+        add_settings_field(
+            'api_base_url',
+            'API Base URL',
+            array($this, 'api_base_url_callback'),
+            'carehq-integration',
+            'carehq_integration_section'
+        );
     }
 
     public function sanitize($input) {
@@ -129,6 +137,9 @@ class CareHQ_NinjaForms_Integration {
 
         if(isset($input['api_secret']))
             $new_input['api_secret'] = sanitize_text_field($input['api_secret']);
+
+        if(isset($input['api_base_url']))
+            $new_input['api_base_url'] = sanitize_text_field($input['api_base_url']);
 
         return $new_input;
     }
@@ -156,6 +167,24 @@ class CareHQ_NinjaForms_Integration {
             '<input type="password" id="api_secret" name="carehq_integration_options[api_secret]" value="%s" class="regular-text" />',
             isset($this->options['api_secret']) ? esc_attr($this->options['api_secret']) : ''
         );
+    }
+
+    public function api_base_url_callback() {
+        $options = [
+            'http://api.carehq.dev'  => 'Test',
+            'https://api.carehq.com' => 'Live'
+        ];
+
+        echo '<select id="api_base_url" name="carehq_integration_options[api_base_url]" class="regular-text">';
+        foreach ($options as $value => $label) {
+            printf(
+                '<option value="%s" %s>%s</option>',
+                esc_attr($value),
+                selected($this->options['api_base_url'], $value, false),
+                esc_html($label)
+            );
+        }
+        echo '</select>';
     }
 }
 
