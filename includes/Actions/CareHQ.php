@@ -132,17 +132,16 @@ class NF_Actions_CareHQ  extends SotAction implements InterfacesSotAction
 
         // For the location we need to get the ID which is stored in the calc value.
         // Not convinced this is the best method to do this. Future refactor...
-        foreach ($data['fields'] as $field) {
-            if (strpos($field['key'], 'location_') === 0) {
-                _dump($field);
-                foreach ($field['options'] as $option) {
-                    if($option['value'] === $action_settings['location']) {
-                            $action_settings['location'] = $option['calc'];
-                        break;
-                    }
-                }
-            }
-        }
+        #foreach ($data['fields'] as $field) {
+        #    if (strpos($field['key'], 'location_') === 0) {
+        #        foreach ($field['options'] as $option) {
+        #            if($option['value'] === $action_settings['location']) {
+        #                    $action_settings['location'] = $option['calc'];
+        #                break;
+        #            }
+        #        }
+        #    }
+        #}
 
         $options = get_option('carehq_integration_options');
 
