@@ -158,24 +158,26 @@ class NF_Actions_CareHQ  extends SotAction implements InterfacesSotAction
                 $options['api_base_url']
             );
 
-            $care_enquiry_data = [
-                'location'          => $action_settings['location'],
-                'sales_channel'     => $action_settings['sales_channel'],
-                'first_name'        => $action_settings['first_name'],
-                'last_name'         => $action_settings['last_name'],
-                'email'             => $action_settings['email'],
-                'phone'             => $action_settings['phone'],
-                'funding_type'      => $action_settings['funding_type'] ? sanitize_title($action_settings['funding_type']) : 'not_sure',
-                'service'           => $action_settings['service'] ? sanitize_title($action_settings['service']) : 'residential_home', // Defaults to a valid value for the locations I'm working with
-                'care_requirements' => $action_settings['care_requirements']
-            ];
+            // Get locations from form data.
+            // Need to handle multiple locations.
+            // CareHQ doesn't support this, so send multiple requests for each location.
+            $locations = explode(',', $action_settings['location']);
 
-            #_dump($client);
-            #_dump($care_enquiry_data);
-
-            $response = $client->request('PUT', 'care-enquiries', null, $care_enquiry_data);
-            #_dump($response);die;
-            #error_log('Care enquiry created in CareHQ: ' . print_r($response, true));
+            foreach ($locations as $location) {
+                $care_enquiry_data = [
+                    'location'          => trim($location), // Ensure no whitespace
+                    'sales_channel'     => $action_settings['sales_channel'],
+                    'first_name'        => $action_settings['first_name'],
+                    'last_name'         => $action_settings['last_name'],
+                    'email'             => $action_settings['email'],
+                    'phone'             => $action_settings['phone'],
+                    'funding_type'      => $action_settings['funding_type'] ? sanitize_title($action_settings['funding_type']) : 'not_sure',
+                    'service'           => $action_settings['service'] ? sanitize_title($action_settings['service']) : 'residential_home',
+                    'care_requirements' => $action_settings['care_requirements']
+                ];
+                $response = $client->request('PUT', 'care-enquiries', null, $care_enquiry_data);
+                error_log('Care enquiry created in CareHQ for location ' . $location . ': ' . print_r($response, true));
+            }
 
         } catch (Exception $e) {
             error_log('CareHQ API Error: ' . $e->getMessage());
