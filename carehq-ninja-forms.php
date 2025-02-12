@@ -2,7 +2,7 @@
 /**
  * Plugin Name: CareHQ NinjaForms Integration
  * Description: Integrates NinjaForms submissions with CareHQ CRM
- * Version: 1.0.0
+ * Version: 1.0.1
  * Author: Andy Place
  * Author URI: https://www.andyplace.co.uk
  * Plugin URI: https://github.com/andyplace/carehq-ninja-forms
@@ -172,7 +172,7 @@ class CareHQ_NinjaForms_Integration {
     public function api_base_url_callback() {
         $options = [
             'http://api.carehq.dev'  => 'Test',
-            'https://api.carehq.com' => 'Live'
+            'https://api.carehq.co.uk' => 'Live'
         ];
 
         echo '<select id="api_base_url" name="carehq_integration_options[api_base_url]" class="regular-text">';
