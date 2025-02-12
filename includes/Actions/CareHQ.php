@@ -177,11 +177,13 @@ class NF_Actions_CareHQ  extends SotAction implements InterfacesSotAction
                 ];
                 $response = $client->request('PUT', 'care-enquiries', null, $care_enquiry_data);
                 error_log('Care enquiry created in CareHQ for location ' . $location . ': ' . print_r($response, true));
+                Ninja_Forms()->logger()->info('Care enquiry created in CareHQ for location ' . $location . ': ' . print_r($response, true));
             }
 
         } catch (Exception $e) {
             error_log('CareHQ API Error: ' . $e->getMessage());
             error_log(print_r($e, true));
+            Ninja_Forms()->logger()->error('CareHQ API Error: ' . print_r($e, true));
         }
 
         return $data;
